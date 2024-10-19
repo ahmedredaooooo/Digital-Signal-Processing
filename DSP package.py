@@ -121,7 +121,7 @@ def save_display(file_name, result):
         file.write(f"0\n0\n{len(result)}\n")
         for x, y in result:
             file.write(f"{int(x)} {int(y)}\n")
-    display_signals(f"Task1 testcases and testing functions/output/{file_name}.txt")
+    display_signals_continues(f"Task1 testcases and testing functions/output/{file_name}.txt")
 
 def add_signals():
     x1, y1, y2 = standardize_signals()
@@ -161,7 +161,7 @@ def folding_signal():
         x[i] = -x[i]
     save_display("folding", list(zip(x, y)))
 
-def display_signals(file_name):
+def display_signals_continues(file_name):
     if file_name == "":
         file_name = select_file(0)
     x, y = ReadSignalFile(file_name)
@@ -190,6 +190,31 @@ def display_signals(file_name):
 
     # Show the plot
     plt.show()
+
+def display_signals_discrete(file_name):
+    if file_name == "":
+        file_name = select_file(0)
+
+    x, y = ReadSignalFile(file_name)
+    x = np.array(x)
+    y = np.array(y)
+
+    plt.figure(figsize=(8, 5))
+    plt.stem(x, y, linefmt='blue', markerfmt='ro', basefmt='k', label='Discrete Signal')
+
+    # Optionally, you can scatter plot the original data points (already done with stem, so optional)
+    plt.scatter(x, y, color='red', s=100, label='Data Points')
+
+    # Customizing the plot
+    plt.title('Discrete Signal Representation', fontsize=16, fontweight='bold')
+    plt.xlabel('X Axis', fontsize=12)
+    plt.ylabel('Y Axis', fontsize=12)
+    plt.grid(True)
+    plt.legend()
+
+    # Show the plot
+    plt.show()
+
 
 
 root = tk.Tk()
@@ -235,7 +260,7 @@ button6.place(x=240, y=420)  # Added y-padding
 button7 = tk.Button(root, text="  Fold   ", command=folding_signal, **button_style)
 button7.place(x=240, y=490)  # Added y-padding
 
-button8 = tk.Button(root, text=" Display ", command=lambda: display_signals(""), **button_style)
+button8 = tk.Button(root, text=" Display ", command=lambda: display_signals_continues(""), **button_style)
 button8.place(x=740, y=600)  # Added y-padding
 
 root.mainloop()
