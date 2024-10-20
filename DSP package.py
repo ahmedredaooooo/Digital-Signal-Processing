@@ -5,7 +5,7 @@ from tkinter import filedialog, font
 from tkinter import messagebox
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.interpolate import CubicSpline
+from scipy.interpolate import CubicSpline, BarycentricInterpolator
 from scipy.interpolate import UnivariateSpline
 
 
@@ -118,7 +118,7 @@ def Generate_Signal(): #copy From Above Function
             theta.set(float(thetaEntry.get()))
             f.set(float(FEntry.get()))
             fs.set(float(FsEntry.get()))
-            if fs < tk.DoubleVar(2.0) * f:
+            if fs.get() < 2.0 * f.get():
                 messagebox.showerror("Invalid Fs", "Please enter a valid number.")
             print("hal 7atkmeel :(")
             input_window.destroy()  # Close the popup window after a valid choice is made
@@ -131,28 +131,29 @@ def Generate_Signal(): #copy From Above Function
     # Wait for the popup window to be closed before continuing
     input_window.wait_window()
 
-    drawSignal(wave_type, A, theta, f, fs)
+    drawSignal(wave_type.get(), A.get(), theta.get(), f.get(), fs.get())
 
 def drawSignal(wave_type, A, theta, f, fs):
-    dt = 1 / fs;
-    hyperDataSize = 12
+    dt = 1 / fs
+    hyperDataSize = 20
     x = []
     y = []
 
-    func = lambda :np.cos
+    func = np.cos
     if wave_type == 1:
-        func = lambda : np.sin
+        func = np.sin
     for i in range(hyperDataSize):
         x.append(i * dt)
         y.append(A * func(2 * np.pi * f * dt * i + theta))
-    result = zip(x, y)
+    result = list(zip(x, y))
     print(x)
     print(y)
     with open(f"Task2 testcases and testing functions/output/GeneratedWave.txt", "w") as file:
         file.write(f"0\n0\n{len(result)}\n")
         for x, y in result:
-            file.write(f"{int(x)} {int(y)}\n")
+            file.write(f"{float(x)} {float(y):.3}\n")
     display_signals_continues(f"Task2 testcases and testing functions/output/GeneratedWave.txt")
+    display_signals_discrete(f"Task2 testcases and testing functions/output/GeneratedWave.txt")
 
 
 def ReadSignalFile(file_name):
@@ -168,7 +169,7 @@ def ReadSignalFile(file_name):
             L = line.strip()
             if len(L.split(' '))==2:
                 L=line.split(' ')
-                V1=int(L[0])
+                V1=float(L[0])                      # changed to float as we need it generateSignal()
                 V2=float(L[1])
                 expected_indices.append(V1)
                 expected_samples.append(V2)
@@ -278,22 +279,23 @@ def display_signals_continues(file_name):
     x, y = ReadSignalFile(file_name)
     x = np.array(x)
     y = np.array(y)
-    # Create spline interpolation
-    spline = UnivariateSpline(x, y, s=0.5)  # Adjust s for smoothness
 
-    # Generate a smooth range of x values
-    x_smooth = np.linspace(x.min(), x.max(), 500)
-    y_smooth = spline(x_smooth)
+    # Create a polynomial interpolation function (Barycentric)
+    poly_interp = BarycentricInterpolator(x, y)
 
-    # Plot the smoothed curve
+    # Generate new x values for plotting
+    x_new = np.linspace(x.min(), x.max(), 300)  # Generate 300 points
+    y_new = poly_interp(x_new)
+
     plt.figure(figsize=(8, 5))
-    plt.plot(x_smooth, y_smooth, color='blue', lw=3, label='Smooth Curve')
+    # Plot the continuous signal using the smooth curve
+    plt.plot(x_new, y_new, color='blue', label='Continuous Signal', linewidth=2)
 
-    # Optionally plot original data points
-    plt.scatter(x, y, color='red', s=100, label='Data Points')
+    # Plot the original data points
+    plt.scatter(x, y, color='red', s=100, label='Data Points', alpha=0.6)
 
     # Customizing the plot
-    plt.title('Curved Signal Representation', fontsize=16, fontweight='bold')
+    plt.title('Continuous Signal Representation', fontsize=16, fontweight='bold')
     plt.xlabel('X Axis', fontsize=12)
     plt.ylabel('Y Axis', fontsize=12)
     plt.grid(True)
