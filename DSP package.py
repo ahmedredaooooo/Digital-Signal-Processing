@@ -42,6 +42,117 @@ def prompt():
     input_window.wait_window()
 
     return user_input.get()
+def Choose_Disc_Or_Cont(): #GPT
+    # Create a new popup window
+    input_window = tk.Toplevel(root)
+    input_window.title("e5tar ya 7biby e5tar")
+
+    # Create a label to prompt the user
+    tk.Label(input_window, text="إختار يا حبيبي إختار").pack(padx=10, pady=10)
+
+    # Variable to store the user's choice
+    user_choice = tk.IntVar(value=0)  # Default to 0 if no option is selected
+
+    # Create two radio buttons for the user to choose from
+    tk.Radiobutton(input_window, text="Continuous", variable=user_choice, value=1).pack(anchor='w', padx=10)
+    tk.Radiobutton(input_window, text="Discrete", variable=user_choice, value=2).pack(anchor='w', padx=10)
+
+    def submit_input():
+        if user_choice.get() == 0:
+            messagebox.showerror("No Selection", "Please select an option.")
+        else:
+            input_window.destroy()  # Close the popup window after a valid choice is made
+
+    # Create a button to submit the input
+    tk.Button(input_window, text="Submit", command=submit_input).pack(pady=10)
+
+    # Wait for the popup window to be closed before continuing
+    input_window.wait_window()
+
+    if user_choice.get() == 1:
+        display_signals_continues("")
+    else:
+        display_signals_discrete("")
+
+def Generate_Signal(): #copy From Above Function
+    # Create a new popup window
+    input_window = tk.Toplevel(root)
+    input_window.title("et2mar 3lena ya 7pp et2mar")
+
+    # Create a label to prompt the user
+    tk.Label(input_window, text="إتأمر علينا يا حبيبي إتأمر").pack(padx=10, pady=10)
+
+    # Variable to store the user's choice
+    wave_type = tk.IntVar(value=0)  # Default to 0 if no option is selected
+
+    # Create two radio buttons for the user to choose from
+    tk.Radiobutton(input_window, text="Sine", variable=wave_type, value=1).pack(anchor='w', padx=10)
+    tk.Radiobutton(input_window, text="Cosine", variable=wave_type, value=2).pack(anchor='w', padx=10)
+
+    A = tk.DoubleVar()
+    theta = tk.DoubleVar()
+    f = tk.DoubleVar()
+    fs = tk.DoubleVar()
+
+    tk.Label(input_window, text="Enter Amplitude (A):").pack(padx=10, pady=10)
+    AEntry = tk.Entry(input_window)
+    AEntry.pack(padx=10, pady=10)
+
+    tk.Label(input_window, text="Enter phase shift theta (Θ):").pack(padx=10, pady=10)
+    thetaEntry = tk.Entry(input_window)
+    thetaEntry.pack(padx=10, pady=10)
+
+    tk.Label(input_window, text="Enter analog frequency (f):").pack(padx=10, pady=10)
+    FEntry = tk.Entry(input_window)
+    FEntry.pack(padx=10, pady=10)
+
+    tk.Label(input_window, text="Enter sampling frequency (fs):").pack(padx=10, pady=10)
+    FsEntry = tk.Entry(input_window)
+    FsEntry.pack(padx=10, pady=10)
+
+    def submit_input():
+        if wave_type.get() == 0:
+            messagebox.showerror("No Selection", "Please select an option.")
+        try:
+            A.set(float(AEntry.get()))
+            theta.set(float(thetaEntry.get()))
+            f.set(float(FEntry.get()))
+            fs.set(float(FsEntry.get()))
+            if fs < tk.DoubleVar(2.0) * f:
+                messagebox.showerror("Invalid Fs", "Please enter a valid number.")
+            print("hal 7atkmeel :(")
+            input_window.destroy()  # Close the popup window after a valid choice is made
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter a valid number.")
+
+    # Create a button to submit the input
+    tk.Button(input_window, text="Submit", command=submit_input).pack(pady=10)
+
+    # Wait for the popup window to be closed before continuing
+    input_window.wait_window()
+
+    drawSignal(wave_type, A, theta, f, fs)
+
+def drawSignal(wave_type, A, theta, f, fs):
+    dt = 1 / fs;
+    hyperDataSize = 12
+    x = []
+    y = []
+
+    func = lambda :np.cos
+    if wave_type == 1:
+        func = lambda : np.sin
+    for i in range(hyperDataSize):
+        x.append(i * dt)
+        y.append(A * func(2 * np.pi * f * dt * i + theta))
+    result = zip(x, y)
+    print(x)
+    print(y)
+    with open(f"Task2 testcases and testing functions/output/GeneratedWave.txt", "w") as file:
+        file.write(f"0\n0\n{len(result)}\n")
+        for x, y in result:
+            file.write(f"{int(x)} {int(y)}\n")
+    display_signals_continues(f"Task2 testcases and testing functions/output/GeneratedWave.txt")
 
 
 def ReadSignalFile(file_name):
@@ -260,7 +371,10 @@ button6.place(x=240, y=420)  # Added y-padding
 button7 = tk.Button(root, text="  Fold   ", command=folding_signal, **button_style)
 button7.place(x=240, y=490)  # Added y-padding
 
-button8 = tk.Button(root, text=" Display ", command=lambda: display_signals_continues(""), **button_style)
+button8 = tk.Button(root, text=" Display ", command=Choose_Disc_Or_Cont, **button_style)
 button8.place(x=740, y=600)  # Added y-padding
+
+button9 = tk.Button(root, text=" Generate Signal ", command=Generate_Signal, **button_style)
+button9.place(x=520, y=600)  # Added y-padding
 
 root.mainloop()
