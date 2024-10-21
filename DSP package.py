@@ -77,10 +77,10 @@ def Choose_Disc_Or_Cont(): #GPT
 def Generate_Signal(): #copy From Above Function
     # Create a new popup window
     input_window = tk.Toplevel(root)
-    input_window.title("et2mar 3lena ya 7pp et2mar")
+    input_window.title("et2mar ya 7pp et2mar")
 
     # Create a label to prompt the user
-    tk.Label(input_window, text="إتأمر علينا يا حبيبي إتأمر").pack(padx=10, pady=10)
+    tk.Label(input_window, text="إتأمر يا حبيبي إتأمر").pack(padx=10, pady=10)
 
     # Variable to store the user's choice
     wave_type = tk.IntVar(value=0)  # Default to 0 if no option is selected
@@ -119,8 +119,7 @@ def Generate_Signal(): #copy From Above Function
             f.set(float(FEntry.get()))
             fs.set(float(FsEntry.get()))
             if fs.get() < 2.0 * f.get():
-                messagebox.showerror("Invalid Fs", "Please enter a valid number.")
-            print("hal 7atkmeel :(")
+                messagebox.showerror("Invalid Fs", "Note that the discrete signal will contain aliasing :(")
             input_window.destroy()  # Close the popup window after a valid choice is made
         except ValueError:
             messagebox.showerror("Invalid Input", "Please enter a valid number.")
@@ -134,26 +133,71 @@ def Generate_Signal(): #copy From Above Function
     drawSignal(wave_type.get(), A.get(), theta.get(), f.get(), fs.get())
 
 def drawSignal(wave_type, A, theta, f, fs):
-    dt = 1 / fs
-    hyperDataSize = 20
+    dt = 1.0 / fs
+    hyperDataSize = 12
     x = []
-    y = []
+    for i in range(hyperDataSize):
+        x.append(i * dt)
+    plot_continuous_and_discrete_sine_wave(wave_type, A, f, theta, np.array(x))
 
     func = np.cos
     if wave_type == 1:
         func = np.sin
+    n = []
+    y = []
     for i in range(hyperDataSize):
-        x.append(i * dt)
-        y.append(A * func(2 * np.pi * f * dt * i + theta))
-    result = list(zip(x, y))
-    print(x)
-    print(y)
-    with open(f"Task2 testcases and testing functions/output/GeneratedWave.txt", "w") as file:
+        n.append(i)
+        y.append(round(float(A * func(2 * np.pi * f / fs * i + theta)), ndigits=3))
+    result = list(zip(n, y))
+    with open(f"Task2 testcases and testing functions/output/GeneratedDiscWave.txt", "w") as file:
         file.write(f"0\n0\n{len(result)}\n")
-        for x, y in result:
-            file.write(f"{float(x)} {float(y):.3}\n")
-    display_signals_continues(f"Task2 testcases and testing functions/output/GeneratedWave.txt")
-    display_signals_discrete(f"Task2 testcases and testing functions/output/GeneratedWave.txt")
+        for n, y in result:
+            file.write(f"{n} {y}\n")
+    display_signals_discrete(f"Task2 testcases and testing functions/output/GeneratedDiscWave.txt")
+
+def plot_continuous_and_discrete_sine_wave(wave_type, amplitude, frequency, phase_shift, x):
+    func = np.cos
+    if (wave_type == 1):
+        func = np.sin
+
+    # Generate x values for the continuous wave
+    x_continuous = np.linspace(x[0], x[-1], 1000)  # Create 1000 points for a smooth curve
+    # Calculate the y values for the continuous wave using the chosen function (sin or cos)
+    y_continuous = amplitude * func(2 * np.pi * frequency * x_continuous + phase_shift)
+    # Generate discrete x values matching the input list x
+    x_discrete = np.linspace(x[0], x[-1], len(x))  # Use the length of x to create discrete points
+    # Calculate the y values for the discrete points using the same function (sin or cos)
+    y_discrete = amplitude * func(2 * np.pi * frequency * x_discrete + phase_shift)
+
+
+    spline_interp = CubicSpline(x, np.array(y_discrete))
+    x_pred = np.linspace(x.min(), x.max(), 1000)
+    y_pred = spline_interp(x_pred)
+
+
+    # Plot the continuous sine wave as a smooth curve
+    plt.figure(figsize=(10, 6))  # Set the figure size for the plot
+    plt.plot(x_continuous, y_continuous, label='Continuous Wave', color='blue', linewidth=2)
+
+    plt.plot(x_pred, y_pred, label='Sampled Wave', color='orange', linewidth=2)
+
+    # Plot the discrete sine wave as a stem plot (vertical lines with markers at the points)
+    plt.stem(x_discrete, y_discrete, linefmt='green', markerfmt='ro', basefmt='k', label='Discrete Signal')
+
+    # Set the x-axis ticks to display integer values only
+    plt.xticks(np.arange(x.min(), x.max(), 1))  # Adjust the tick marks based on the step size in x
+
+    # Customizing the plot appearance
+    plt.axhline(0, color='black', linewidth=1)  # Draw a horizontal line at y = 0 (x-axis)
+    plt.axvline(0, color='black', linewidth=1)  # Draw a vertical line at x = 0 (y-axis)
+    plt.grid(True)  # Display a grid on the plot
+    plt.title('Continuous and Discrete Sine Wave Plot', fontsize=16, fontweight='bold')  # Set the plot title
+    plt.xlabel('Time', fontsize=12)  # Label for the x-axis
+    plt.ylabel('Amplitude', fontsize=12)  # Label for the y-axis
+    plt.legend()  # Display the legend for different wave representations
+
+    # Show the plot
+    plt.show()  # Render the plot
 
 
 def ReadSignalFile(file_name):
@@ -281,11 +325,11 @@ def display_signals_continues(file_name):
     y = np.array(y)
 
     # Create a polynomial interpolation function (Barycentric)
-    poly_interp = BarycentricInterpolator(x, y)
+    spline_interp = CubicSpline(x, y)
 
     # Generate new x values for plotting
-    x_new = np.linspace(x.min(), x.max(), 300)  # Generate 300 points
-    y_new = poly_interp(x_new)
+    x_new = np.linspace(x.min(), x.max(), 1000)  # Generate 300 points
+    y_new = spline_interp(x_new)
 
     plt.figure(figsize=(8, 5))
     # Plot the continuous signal using the smooth curve
@@ -293,6 +337,10 @@ def display_signals_continues(file_name):
 
     # Plot the original data points
     plt.scatter(x, y, color='red', s=100, label='Data Points', alpha=0.6)
+
+    # Set the x-axis ticks to display only integer values
+    plt.xticks(np.arange(x.min(), x.max(), x[1] - x[0]))
+
 
     # Customizing the plot
     plt.title('Continuous Signal Representation', fontsize=16, fontweight='bold')
@@ -315,8 +363,8 @@ def display_signals_discrete(file_name):
     plt.figure(figsize=(8, 5))
     plt.stem(x, y, linefmt='blue', markerfmt='ro', basefmt='k', label='Discrete Signal')
 
-    # Optionally, you can scatter plot the original data points (already done with stem, so optional)
-    plt.scatter(x, y, color='red', s=100, label='Data Points')
+    # Set the x-axis ticks to display only integer values
+    plt.xticks(np.arange(x.min(), x.max(), x[1] - x[0]))
 
     # Customizing the plot
     plt.title('Discrete Signal Representation', fontsize=16, fontweight='bold')
