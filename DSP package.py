@@ -1,18 +1,12 @@
 import bisect
 import math
 import tkinter as tk  # Import the Tkinter module and alias it as 'tk'
-from idlelib.pyparse import trans
-from operator import index
-from os import write
 from tkinter import filedialog, font
 from tkinter import messagebox
-from xml.etree.ElementTree import tostring
-
 import matplotlib.pyplot as plt
 import numpy as np
+from tabulate import tabulate
 from scipy.interpolate import CubicSpline, BarycentricInterpolator
-from scipy.interpolate import UnivariateSpline
-
 
 
 # Variables to store the file paths
@@ -389,7 +383,6 @@ def to_binary(n, numOfBits):
     while len(binary) < numOfBits:
         binary += '0'
     binary = binary[::-1]
-    print(binary)
     return binary
 
 def quantize_signal(file_name):
@@ -412,10 +405,6 @@ def quantize_signal(file_name):
     _lvls = tk.IntVar()
     lvls = 0
     txt = "Enter a Number:"
-    # if (lvlsORbit.get() == 1):
-    #     txt = "Enter levels:"
-    # elif lvlsORbit.get() == 2:
-    #     txt = "Enter bits: (مش مسامحك علي فكرة):"
     tk.Label(input_window, text= txt).pack(padx=10, pady=10)
     entry = tk.Entry(input_window)
     entry.pack(padx=10, pady=10)
@@ -455,28 +444,74 @@ def quantize_signal(file_name):
 
     n = x
     Xn = y
+    eps = 1e-8
     interval_index, Xqn, EQn, EQ2n, intervalBin = [], [], [], [], []
     for i in range(len(y)):
         idx = bisect.bisect_right(levels, y[i])
         if idx == len(levels):
             idx -= 1
         elif idx != 0:
-            if y[i] - levels[idx - 1] < delta / 2:
+            if y[i] - levels[idx - 1] <= delta / 2 + eps:
                 idx -= 1
         intervalBin.append(binOflvl[idx])
         interval_index.append(idx + 1)
         Xqn.append(levels[idx])
         EQn.append(Xqn[-1] - Xn[i])
         EQ2n.append(EQn[-1] ** 2)
-    AvgEQ2n = sum(EQ2n) / len(n)
 
     result = list(zip(intervalBin, Xqn))
     with open(f"Task3 testcases and testing functions/output/Quan1.txt", "w") as file:
         file.write(f"0\n0\n{len(result)}\n")
-        for n, y in result:
-            file.write(f"{n} {y}\n")
-    
+        for x, y in result:
+            file.write(f"{x} {round(y, 2)}\n")
+    printTable(n, Xn, interval_index, Xqn, EQn, EQ2n)
+    display_quantized_signal(n, Xn, Xqn)
 
+def display_quantized_signal(x, y, _y):
+    x = np.array(x)
+    y = np.array(y)
+    _y = np.array(_y)
+
+    # Create a polynomial interpolation function (Barycentric)
+    spline_interp = CubicSpline(x, y)
+
+    # Generate new x values for plotting
+    x_new = np.linspace(x.min(), x.max(), 1000)  # Generate 1000 points
+    y_new = spline_interp(x_new)
+
+    plt.figure(figsize=(10, 6))
+
+    # Plot the quantized signal as a ladder graph
+    plt.step(x, _y, where='post', color='green', label='Quantized Signal', linewidth=2)
+
+    # Plot the continuous signal using the smooth curve
+    plt.plot(x_new, y_new, color='blue', label='Continuous Signal', linewidth=2)
+
+    # Plot the original data points
+    plt.scatter(x, y, color='red', s=50, label='Original Data Points', alpha=0.6)
+
+    # Set the x-axis ticks to display only integer values
+    plt.xticks(np.arange(x.min(), x.max() + 1, 1))  # Adjust the range for integer ticks
+
+    # Customizing the plot
+    plt.title('Continuous and Quantized Signal Representation', fontsize=16, fontweight='bold')
+    plt.xlabel('X Axis', fontsize=12)
+    plt.ylabel('Y Axis', fontsize=12)
+    plt.grid(True)
+    plt.legend()
+
+    # Show the plot
+    plt.show()
+
+def printTable(n, Xn, interval_index, Xqn, EQn, EQ2n):
+    # Create data as a list of rows
+    data = list(zip(n, Xn, interval_index, Xqn, EQn, EQ2n))
+    # Define column headers
+    columns = ["n", "Xn", "Interval Index", "Xqn", "EQn", "EQ2n"]
+    # Print the table using tabulate
+    print(tabulate(data, headers=columns, tablefmt="fancy_grid"))
+    average_power_error = sum(EQ2n) / len(n)
+    print(f"average_power_error = {round(average_power_error, 6)}")
 
 
 root = tk.Tk()
