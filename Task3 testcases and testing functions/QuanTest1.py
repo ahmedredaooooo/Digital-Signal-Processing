@@ -1,3 +1,26 @@
+def ReadSignal(file_name):
+    expectedEncodedValues = []
+    expectedQuantizedValues = []
+    with open(file_name, 'r') as f:
+        line = f.readline()
+        line = f.readline()
+        line = f.readline()
+        line = f.readline()
+        while line:
+            # process line
+            L = line.strip()
+            if len(L.split(' ')) == 2:
+                L = line.split(' ')
+                V2 = str(L[0])
+                V3 = float(L[1])
+                expectedEncodedValues.append(V2)
+                expectedQuantizedValues.append(V3)
+                line = f.readline()
+            else:
+                break
+    return expectedEncodedValues, expectedQuantizedValues
+
+
 def QuantizationTest1(file_name,Your_EncodedValues,Your_QuantizedValues):
     expectedEncodedValues=[]
     expectedQuantizedValues=[]
@@ -32,3 +55,6 @@ def QuantizationTest1(file_name,Your_EncodedValues,Your_QuantizedValues):
             print("QuantizationTest1 Test case failed, your QuantizedValues have different values from the expected one") 
             return
     print("QuantizationTest1 Test case passed successfully")
+
+x, y = ReadSignal('output/Quan1.txt')
+QuantizationTest1('Quan1_Out.txt', x, y)

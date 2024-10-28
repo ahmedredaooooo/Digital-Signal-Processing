@@ -1,3 +1,5 @@
+import bisect
+import math
 import tkinter as tk  # Import the Tkinter module and alias it as 'tk'
 from idlelib.pyparse import trans
 from operator import index
@@ -11,11 +13,10 @@ import numpy as np
 from scipy.interpolate import CubicSpline, BarycentricInterpolator
 from scipy.interpolate import UnivariateSpline
 
-
-
 # Variables to store the file paths
 first_signal_path = ""
 second_signal_path = ""
+
 
 def prompt():
     # Create a new popup window
@@ -45,7 +46,9 @@ def prompt():
     input_window.wait_window()
 
     return user_input.get()
-def Choose_Disc_Or_Cont(): #GPT
+
+
+def Choose_Disc_Or_Cont():  # GPT
     # Create a new popup window
     input_window = tk.Toplevel(root)
     input_window.title("e5tar ya 7biby e5tar")
@@ -77,7 +80,8 @@ def Choose_Disc_Or_Cont(): #GPT
     else:
         display_signals_discrete("")
 
-def Generate_Signal(): #copy From Above Function
+
+def Generate_Signal():  # copy From Above Function
     # Create a new popup window
     input_window = tk.Toplevel(root)
     input_window.title("et2mar ya 7pp et2mar")
@@ -135,6 +139,7 @@ def Generate_Signal(): #copy From Above Function
 
     drawSignal(wave_type.get(), A.get(), theta.get(), f.get(), fs.get())
 
+
 def drawSignal(wave_type, A, theta, f, fs):
     dt = 1.0 / fs
     hyperDataSize = 12
@@ -158,6 +163,7 @@ def drawSignal(wave_type, A, theta, f, fs):
             file.write(f"{n} {y}\n")
     display_signals_discrete(f"Task2 testcases and testing functions/output/GeneratedDiscWave.txt")
 
+
 def plot_continuous_and_discrete_sine_wave(wave_type, amplitude, frequency, phase_shift, x):
     func = np.cos
     if (wave_type == 1):
@@ -172,11 +178,9 @@ def plot_continuous_and_discrete_sine_wave(wave_type, amplitude, frequency, phas
     # Calculate the y values for the discrete points using the same function (sin or cos)
     y_discrete = amplitude * func(2 * np.pi * frequency * x_discrete + phase_shift)
 
-
     spline_interp = CubicSpline(x, np.array(y_discrete))
     x_pred = np.linspace(x.min(), x.max(), 1000)
     y_pred = spline_interp(x_pred)
-
 
     # Plot the continuous sine wave as a smooth curve
     plt.figure(figsize=(10, 6))  # Set the figure size for the plot
@@ -204,8 +208,8 @@ def plot_continuous_and_discrete_sine_wave(wave_type, amplitude, frequency, phas
 
 
 def ReadSignalFile(file_name):
-    expected_indices=[]
-    expected_samples=[]
+    expected_indices = []
+    expected_samples = []
     with open(file_name, 'r') as f:
         line = f.readline()
         line = f.readline()
@@ -214,16 +218,16 @@ def ReadSignalFile(file_name):
         while line:
             # process line
             L = line.strip()
-            if len(L.split(' '))==2:
-                L=line.split(' ')
-                V1=float(L[0])                      # changed to float as we need it generateSignal()
-                V2=float(L[1])
+            if len(L.split(' ')) == 2:
+                L = line.split(' ')
+                V1 = float(L[0])  # changed to float as we need it generateSignal()
+                V2 = float(L[1])
                 expected_indices.append(V1)
                 expected_samples.append(V2)
                 line = f.readline()
             else:
                 break
-    return expected_indices,expected_samples
+    return expected_indices, expected_samples
 
 
 def select_file(button_id):
@@ -248,6 +252,7 @@ def select_file(button_id):
             return file_path
     else:
         messagebox.showwarning("No File Selected", "Please select a file.")
+
 
 def standardize_signals():
     if first_signal_path == "":
@@ -274,6 +279,7 @@ def standardize_signals():
     x2.pop()
     return x1, y1, y2
 
+
 def save_display(file_name, result):
     # Open the file in write mode and print the result to it
     with open(f"Task1 testcases and testing functions/output/{file_name}.txt", "w") as file:
@@ -282,10 +288,12 @@ def save_display(file_name, result):
             file.write(f"{int(x)} {int(y)}\n")
     display_signals_continues(f"Task1 testcases and testing functions/output/{file_name}.txt")
 
+
 def add_signals():
     x1, y1, y2 = standardize_signals()
     res = [y1[i] + y2[i] for i in range(len(y1))]
     save_display("add", list(zip(x1, res)))
+
 
 def scale_signal(A):
     if first_signal_path == "":
@@ -294,10 +302,12 @@ def scale_signal(A):
     res = [y[i] * A for i in range(len(y))]
     save_display("mul", list(zip(x, res)))
 
+
 def subtract_signals():
     x1, y1, y2 = standardize_signals()
     res = [y1[i] - y2[i] for i in range(len(y1))]
     save_display("subtract", list(zip(x1, res)))
+
 
 def shift_signal(k):
     if first_signal_path == "":
@@ -310,6 +320,7 @@ def shift_signal(k):
     else:
         save_display("advance", list(zip(x, y)))
 
+
 def folding_signal():
     if first_signal_path == "":
         select_file(1)
@@ -319,6 +330,7 @@ def folding_signal():
     for i in range(len(x)):
         x[i] = -x[i]
     save_display("folding", list(zip(x, y)))
+
 
 def display_signals_continues(file_name):
     if file_name == "":
@@ -344,7 +356,6 @@ def display_signals_continues(file_name):
     # Set the x-axis ticks to display only integer values
     plt.xticks(np.arange(x.min(), x.max(), x[1] - x[0]))
 
-
     # Customizing the plot
     plt.title('Continuous Signal Representation', fontsize=16, fontweight='bold')
     plt.xlabel('X Axis', fontsize=12)
@@ -354,6 +365,7 @@ def display_signals_continues(file_name):
 
     # Show the plot
     plt.show()
+
 
 def display_signals_discrete(file_name):
     if file_name == "":
@@ -379,38 +391,105 @@ def display_signals_discrete(file_name):
     # Show the plot
     plt.show()
 
+
 def to_binary(n, numOfBits):
-    binary = []
+    binary = ""
     while n > 0:
-        binary.append(n & 1)
+        binary += str(n & 1)
         n >>= 1
     while len(binary) < numOfBits:
-        binary.append(0)
-    binary.reverse()
-    return tostring(binary)
+        binary += '0'
+    binary = binary[::-1]
+    print(binary)
+    return binary
+
 
 def quantize_signal(file_name):
     if file_name == "":
         file_name = select_file(0)
 
-    bits = 3
+    # Create a new popup window
+    input_window = tk.Toplevel(root)
+    input_window.title("et2mar ya 7pp et2mar")
+
+    # Create a label to prompt the user
+    tk.Label(input_window, text="bits OR LEVELS ?").pack(padx=10, pady=10)
+    # Variable to store the user's choice
+    lvlsORbit = tk.IntVar(value=0)  # Default to 0 if no option is selected
+
+    # Create two radio buttons for the user to choose from
+    tk.Radiobutton(input_window, text="levels (إختار ديه عشان متتعبناش)", variable=lvlsORbit, value=1).pack(anchor='w',
+                                                                                                            padx=10)
+    tk.Radiobutton(input_window, text="bits (كده حضطر احسب اللفلز)", variable=lvlsORbit, value=2).pack(anchor='w',
+                                                                                                       padx=10)
+
+    _lvls = tk.IntVar()
+    lvls = 0
+    txt = "Enter a Number:"
+    # if (lvlsORbit.get() == 1):
+    #     txt = "Enter levels:"
+    # elif lvlsORbit.get() == 2:
+    #     txt = "Enter bits: (مش مسامحك علي فكرة):"
+    tk.Label(input_window, text=txt).pack(padx=10, pady=10)
+    entry = tk.Entry(input_window)
+    entry.pack(padx=10, pady=10)
+
+    def submit_input():
+        if lvlsORbit.get() == 0:
+            messagebox.showerror("No Selection", "Please select an option.")
+        try:
+            if lvlsORbit.get() == 1:
+                _lvls.set(int(entry.get()))
+            elif lvlsORbit.get() == 2:
+                _lvls.set(1 << int(entry.get()))
+            if lvlsORbit.get() != 0:
+                input_window.destroy()  # Close the popup window after a valid choice is made
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter a valid number.")
+
+    # Create a button to submit the input
+    tk.Button(input_window, text="Submit", command=submit_input).pack(pady=10)
+
+    # Wait for the popup window to be closed before continuing
+    input_window.wait_window()
+    lvls = _lvls.get()
 
     x, y = ReadSignalFile(file_name)
-    binaryOfLevel, levels = [], []
+    binOflvl, levels = [], []
     mnY, mxY = np.min(y), np.max(y)
-    # if the givin is bits
+    # if the given is bits
 
-    numOfLevels = 1 << bits
-    delta = (mxY - mnY) / numOfLevels
-    levels[0] = mnY + delta / 2
-    binaryOfLevel[0] = to_binary(0, bits)
-    for i in range(1, numOfLevels):
-        levels[i] = levels[i - 1] + delta
-        binaryOfLevel[i] = to_binary(i, bits)
+    bits = math.ceil(math.log2(lvls))
+    delta = 1.0 * (mxY - mnY) / lvls
+    levels.append(mnY + delta / 2)
+    binOflvl.append(to_binary(0, bits))
+    for i in range(1, lvls):
+        levels.append(levels[i - 1] + delta)
+        binOflvl.append(to_binary(i, bits))
 
+    n = x
+    Xn = y
+    eps = 1e-8
+    interval_index, Xqn, EQn, EQ2n, intervalBin = [], [], [], [], []
+    for i in range(len(y)):
+        idx = bisect.bisect_right(levels, y[i])
+        if idx == len(levels):
+            idx -= 1
+        elif idx != 0:
+            if y[i] - levels[idx - 1] <= (delta / 2) + eps:
+                idx -= 1
+        intervalBin.append(binOflvl[idx])
+        interval_index.append(idx + 1)
+        Xqn.append(levels[idx])
+        EQn.append(Xqn[-1] - Xn[i])
+        EQ2n.append(EQn[-1] ** 2)
+    AvgEQ2n = sum(EQ2n) / len(n)
 
-
-
+    result = list(zip(intervalBin, Xqn))
+    with open(f"Task3 testcases and testing functions/output/Quan1.txt", "w") as file:
+        file.write(f"0\n0\n{len(result)}\n")
+        for n, y in result:
+            file.write(f"{n} {y}\n")
 
 
 root = tk.Tk()
@@ -423,7 +502,7 @@ custom_font = font.Font(family="Helvetica", size=12, weight="bold")
 # Button styles
 button_style = {
     'bg': '#4CAF50',  # Green background
-    'fg': 'white',    # White text
+    'fg': 'white',  # White text
     'font': custom_font,
     'padx': 10,
     'pady': 10,
@@ -462,7 +541,7 @@ button8.place(x=740, y=600)  # Added y-padding
 button9 = tk.Button(root, text=" Generate Signal ", command=Generate_Signal, **button_style)
 button9.place(x=520, y=600)  # Added y-padding
 
-button10 = tk.Button(root, text=" Quantize signal ", command=lambda : quantize_signal(""), **button_style)
+button10 = tk.Button(root, text=" Quantize signal ", command=lambda: quantize_signal(""), **button_style)
 button10.place(x=960, y=600)  # Added y-padding
 
 root.mainloop()
