@@ -1,8 +1,13 @@
+import bisect
+import math
 import tkinter as tk  # Import the Tkinter module and alias it as 'tk'
 from idlelib.pyparse import trans
+from operator import index
 from os import write
 from tkinter import filedialog, font
 from tkinter import messagebox
+from xml.etree.ElementTree import tostring
+
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import CubicSpline, BarycentricInterpolator
@@ -376,6 +381,102 @@ def display_signals_discrete(file_name):
     # Show the plot
     plt.show()
 
+def to_binary(n, numOfBits):
+    binary = ""
+    while n > 0:
+        binary += str(n & 1)
+        n >>= 1
+    while len(binary) < numOfBits:
+        binary += '0'
+    binary = binary[::-1]
+    print(binary)
+    return binary
+
+def quantize_signal(file_name):
+    if file_name == "":
+        file_name = select_file(0)
+
+    # Create a new popup window
+    input_window = tk.Toplevel(root)
+    input_window.title("et2mar ya 7pp et2mar")
+
+    # Create a label to prompt the user
+    tk.Label(input_window, text="bits OR LEVELS ?").pack(padx=10, pady=10)
+    # Variable to store the user's choice
+    lvlsORbit = tk.IntVar(value=0)  # Default to 0 if no option is selected
+
+    # Create two radio buttons for the user to choose from
+    tk.Radiobutton(input_window, text="levels (إختار ديه عشان متتعبناش)", variable=lvlsORbit, value=1).pack(anchor='w', padx=10)
+    tk.Radiobutton(input_window, text="bits (كده حضطر احسب اللفلز)", variable=lvlsORbit, value=2).pack(anchor='w', padx=10)
+
+    _lvls = tk.IntVar()
+    lvls = 0
+    txt = "Enter a Number:"
+    # if (lvlsORbit.get() == 1):
+    #     txt = "Enter levels:"
+    # elif lvlsORbit.get() == 2:
+    #     txt = "Enter bits: (مش مسامحك علي فكرة):"
+    tk.Label(input_window, text= txt).pack(padx=10, pady=10)
+    entry = tk.Entry(input_window)
+    entry.pack(padx=10, pady=10)
+
+    def submit_input():
+        if lvlsORbit.get() == 0:
+            messagebox.showerror("No Selection", "Please select an option.")
+        try:
+            if lvlsORbit.get() == 1:
+                _lvls.set(int(entry.get()))
+            elif lvlsORbit.get() == 2:
+                _lvls.set(1 << int(entry.get()))
+            if lvlsORbit.get() != 0:
+                input_window.destroy()  # Close the popup window after a valid choice is made
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter a valid number.")
+
+    # Create a button to submit the input
+    tk.Button(input_window, text="Submit", command=submit_input).pack(pady=10)
+
+    # Wait for the popup window to be closed before continuing
+    input_window.wait_window()
+    lvls = _lvls.get()
+
+    x, y = ReadSignalFile(file_name)
+    binOflvl, levels = [], []
+    mnY, mxY = np.min(y), np.max(y)
+    # if the given is bits
+
+    bits = math.ceil(math.log2(lvls))
+    delta = 1.0 * (mxY - mnY) / lvls
+    levels.append(mnY + delta / 2)
+    binOflvl.append(to_binary(0, bits))
+    for i in range(1, lvls):
+        levels.append(levels[i - 1] + delta)
+        binOflvl.append(to_binary(i, bits))
+
+    n = x
+    Xn = y
+    interval_index, Xqn, EQn, EQ2n, intervalBin = [], [], [], [], []
+    for i in range(len(y)):
+        idx = bisect.bisect_right(levels, y[i])
+        if idx == len(levels):
+            idx -= 1
+        elif idx != 0:
+            if y[i] - levels[idx - 1] < delta / 2:
+                idx -= 1
+        intervalBin.append(binOflvl[idx])
+        interval_index.append(idx + 1)
+        Xqn.append(levels[idx])
+        EQn.append(Xqn[-1] - Xn[i])
+        EQ2n.append(EQn[-1] ** 2)
+    AvgEQ2n = sum(EQ2n) / len(n)
+
+    result = list(zip(intervalBin, Xqn))
+    with open(f"Task3 testcases and testing functions/output/Quan1.txt", "w") as file:
+        file.write(f"0\n0\n{len(result)}\n")
+        for n, y in result:
+            file.write(f"{n} {y}\n")
+    
+
 
 
 root = tk.Tk()
@@ -426,5 +527,8 @@ button8.place(x=740, y=600)  # Added y-padding
 
 button9 = tk.Button(root, text=" Generate Signal ", command=Generate_Signal, **button_style)
 button9.place(x=520, y=600)  # Added y-padding
+
+button10 = tk.Button(root, text=" Quantize signal ", command=lambda : quantize_signal(""), **button_style)
+button10.place(x=960, y=600)  # Added y-padding
 
 root.mainloop()
