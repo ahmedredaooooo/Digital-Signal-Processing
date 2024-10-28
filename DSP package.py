@@ -445,7 +445,7 @@ def quantize_signal(file_name):
     n = x
     Xn = y
     eps = 1e-8
-    interval_index, Xqn, EQn, EQ2n, intervalBin = [], [], [], [], []
+    interval_index, Xqn, EQn, EQ2n, encoded_values = [], [], [], [], []
     for i in range(len(y)):
         idx = bisect.bisect_right(levels, y[i])
         if idx == len(levels):
@@ -453,18 +453,26 @@ def quantize_signal(file_name):
         elif idx != 0:
             if y[i] - levels[idx - 1] <= delta / 2 + eps:
                 idx -= 1
-        intervalBin.append(binOflvl[idx])
+        encoded_values.append(binOflvl[idx])
         interval_index.append(idx + 1)
         Xqn.append(levels[idx])
         EQn.append(Xqn[-1] - Xn[i])
         EQ2n.append(EQn[-1] ** 2)
-
-    result = list(zip(intervalBin, Xqn))
+   # Test1
+    result = list(zip(encoded_values, Xqn))
     with open(f"Task3 testcases and testing functions/output/Quan1.txt", "w") as file:
         file.write(f"0\n0\n{len(result)}\n")
         for x, y in result:
             file.write(f"{x} {round(y, 2)}\n")
-    printTable(n, Xn, interval_index, Xqn, EQn, EQ2n)
+    printTable(n, Xn, interval_index, encoded_values, Xqn, EQn, EQ2n)
+    display_quantized_signal(n, Xn, Xqn)
+   # Test2
+    result = list(zip(interval_index, encoded_values, Xqn, EQn))
+    with open(f"Task3 testcases and testing functions/output/Quan2.txt", "w") as file:
+        file.write(f"0\n0\n{len(result)}\n")
+        for w, x, y, z in result:
+            file.write(f"{w} {x} {round(y, 3)} {round(z, 3)}\n")
+    printTable(n, Xn, interval_index, encoded_values, Xqn, EQn, EQ2n)
     display_quantized_signal(n, Xn, Xqn)
 
 def display_quantized_signal(x, y, _y):
@@ -503,11 +511,11 @@ def display_quantized_signal(x, y, _y):
     # Show the plot
     plt.show()
 
-def printTable(n, Xn, interval_index, Xqn, EQn, EQ2n):
+def printTable(n, Xn, interval_index, encoded_values, Xqn, EQn, EQ2n):
     # Create data as a list of rows
-    data = list(zip(n, Xn, interval_index, Xqn, EQn, EQ2n))
+    data = list(zip(n, Xn, interval_index, encoded_values, Xqn, EQn, EQ2n))
     # Define column headers
-    columns = ["n", "Xn", "Interval Index", "Xqn", "EQn", "EQ2n"]
+    columns = ["n", "Xn", "Interval Index", "encoded_values", "Xqn", "EQn", "EQ2n"]
     # Print the table using tabulate
     print(tabulate(data, headers=columns, tablefmt="fancy_grid"))
     average_power_error = sum(EQ2n) / len(n)
