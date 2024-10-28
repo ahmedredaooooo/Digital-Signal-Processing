@@ -377,7 +377,6 @@ def display_signals_discrete(file_name):
     plt.show()
 
 
-
 root = tk.Tk()
 root.title("Signal Processing")
 root.geometry("1700x1350")  # Set the window size
