@@ -1,8 +1,11 @@
 import tkinter as tk  # Import the Tkinter module and alias it as 'tk'
 from idlelib.pyparse import trans
+from operator import index
 from os import write
 from tkinter import filedialog, font
 from tkinter import messagebox
+from xml.etree.ElementTree import tostring
+
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import CubicSpline, BarycentricInterpolator
@@ -376,6 +379,39 @@ def display_signals_discrete(file_name):
     # Show the plot
     plt.show()
 
+def to_binary(n, numOfBits):
+    binary = []
+    while n > 0:
+        binary.append(n & 1)
+        n >>= 1
+    while len(binary) < numOfBits:
+        binary.append(0)
+    binary.reverse()
+    return tostring(binary)
+
+def quantize_signal(file_name):
+    if file_name == "":
+        file_name = select_file(0)
+
+    bits = 3
+
+    x, y = ReadSignalFile(file_name)
+    binaryOfLevel, levels = [], []
+    mnY, mxY = np.min(y), np.max(y)
+    # if the givin is bits
+
+    numOfLevels = 1 << bits
+    delta = (mxY - mnY) / numOfLevels
+    levels[0] = mnY + delta / 2
+    binaryOfLevel[0] = to_binary(0, bits)
+    for i in range(1, numOfLevels):
+        levels[i] = levels[i - 1] + delta
+        binaryOfLevel[i] = to_binary(i, bits)
+
+
+
+
+
 
 root = tk.Tk()
 root.title("Signal Processing")
@@ -425,5 +461,8 @@ button8.place(x=740, y=600)  # Added y-padding
 
 button9 = tk.Button(root, text=" Generate Signal ", command=Generate_Signal, **button_style)
 button9.place(x=520, y=600)  # Added y-padding
+
+button10 = tk.Button(root, text=" Quantize signal ", command=lambda : quantize_signal(""), **button_style)
+button10.place(x=960, y=600)  # Added y-padding
 
 root.mainloop()
