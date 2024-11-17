@@ -536,17 +536,54 @@ def compare_signals(calculated_file, expected_file, task):
         if cx != ex or cy != ey:
             print(f"Test case for {task} failed, the values don't match")
             return
-    print(f"Test case for {task} passed.")
+    print(f"Congratulations Test case for {task} passed :) .")
 
 
 def derivative_signal():
-    pass
+    file_name = select_file(0)
+    x, y = ReadSignalFile(file_name)
+
+    d1 = []
+    for i in range(1, len(x)):
+        d1.append(y[i] - y[i - 1])
+    d2 = []
+    for i in range(1, len(d1)):
+        d2.append(d1[i] - d1[i - 1])
+
+    with open(f"Task4 testcases and testing functions/output/1st_derivative_out.txt", "w") as file:
+        file.write(f"0\n0\n{len(d1)}\n")
+        for i in range(len(d1)):
+            file.write(f"{i} {d1[i]}\n")
+    with open(f"Task4 testcases and testing functions/output/2nd_derivative_out.txt", "w") as file:
+        file.write(f"0\n0\n{len(d2)}\n")
+        for i in range(len(d2)):
+            file.write(f"{i} {d2[i]}\n")
+
+    compare_signals("Task4 testcases and testing functions/output/1st_derivative_out.txt",
+                    "Task4 testcases and testing functions/Derivative testcases/1st_derivative_out.txt",
+                    "Calculating 1st Derivative")
+    compare_signals("Task4 testcases and testing functions/output/2nd_derivative_out.txt",
+                    "Task4 testcases and testing functions/Derivative testcases/2nd_derivative_out.txt",
+                    "Calculating 2nd Derivative")
 
 def moving_average():
     pass
 
 def convolution():
-    pass
+    messagebox.showinfo("signal 1", "select 1st signal")
+    file_name = select_file(0)
+    x1, y1 = ReadSignalFile(file_name)
+
+    messagebox.showinfo("signal 2", "select 2nd signal")
+    file_name = select_file(0)
+    x2, y2 = ReadSignalFile(file_name)
+
+    mn_x = x1[0] + x2[0]
+    mx_x = x1[-1] + x2[-1]
+
+    res_x = list(range(mn_x, mx_x + 1))
+    res_y = list(np.zeros(len(res_x)))
+
 
 # %% GUI
 root = tk.Tk()
