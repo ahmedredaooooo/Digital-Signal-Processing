@@ -522,6 +522,33 @@ def printTable(n, Xn, interval_index, encoded_values, Xqn, EQn, EQ2n):
     print(f"average_power_error = {round(average_power_error, 6)}")
 
 
+# %%Task4
+
+def compare_signals(calculated_file, expected_file, task):
+    calculated_x, calculated_y = ReadSignalFile(calculated_file)
+    expected_x, expected_y = ReadSignalFile(expected_file)
+
+    # check lengthes
+    if len(calculated_x) != len(expected_x) or len(calculated_y) != len(expected_y):
+        print(f"Test case for {task} failed, the lengths don't match")
+        return
+    for cx, ex, cy, ey in zip(calculated_x, expected_x, calculated_y, expected_y):
+        if cx != ex or cy != ey:
+            print(f"Test case for {task} failed, the values don't match")
+            return
+    print(f"Test case for {task} passed.")
+
+
+def derivative_signal():
+    pass
+
+def moving_average():
+    pass
+
+def convolution():
+    pass
+
+# %% GUI
 root = tk.Tk()
 root.title("Signal Processing")
 root.geometry("1700x1350")  # Set the window size
@@ -573,5 +600,19 @@ button9.place(x=520, y=600)  # Added y-padding
 
 button10 = tk.Button(root, text=" Quantize signal ", command=lambda : quantize_signal(""), **button_style)
 button10.place(x=960, y=600)  # Added y-padding
+
+# Task4 Text Box
+task4_label = tk.Label(root, text=" Task4 ", font=("Helvetica", 14), bg="lightgray", fg="black")
+task4_label.place(x=1270, y=300)  # Positioning on the right
+
+# Task4 Buttons
+button11 = tk.Button(root, text=" Derivative ", command=derivative_signal, **button_style)
+button11.place(x=1240, y=350)
+
+button12 = tk.Button(root, text=" Moving Average ", command=moving_average, **button_style)
+button12.place(x=1240, y=400)
+
+button13 = tk.Button(root, text=" Convolution ", command=convolution, **button_style)
+button13.place(x=1240, y=450)
 
 root.mainloop()
