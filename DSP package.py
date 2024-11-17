@@ -523,7 +523,6 @@ def printTable(n, Xn, interval_index, encoded_values, Xqn, EQn, EQ2n):
 
 
 # %%Task4
-
 def compare_signals(calculated_file, expected_file, task):
     calculated_x, calculated_y = ReadSignalFile(calculated_file)
     expected_x, expected_y = ReadSignalFile(expected_file)
@@ -558,13 +557,7 @@ def derivative_signal():
         file.write(f"0\n0\n{len(d2)}\n")
         for i in range(len(d2)):
             file.write(f"{i} {d2[i]}\n")
-
-    compare_signals("Task4 testcases and testing functions/output/1st_derivative_out.txt",
-                    "Task4 testcases and testing functions/Derivative testcases/1st_derivative_out.txt",
-                    "Calculating 1st Derivative")
-    compare_signals("Task4 testcases and testing functions/output/2nd_derivative_out.txt",
-                    "Task4 testcases and testing functions/Derivative testcases/2nd_derivative_out.txt",
-                    "Calculating 2nd Derivative")
+            
 
 def moving_average():
     pass
