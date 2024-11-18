@@ -34,14 +34,21 @@ def compare_signals(calculated_file, expected_file, task):
             return
     print(f"Congratulations Test case for {task} passed ;) .")
 
+compare_signals("output/MovingAvg_out.txt",
+                "Moving Average testcases/MovingAvg_out1.txt",
+                "Calculating Moving Average (smoothed signal)")
+print()
+
 compare_signals("output/1st_derivative_out.txt",
                 "Derivative testcases/1st_derivative_out.txt",
                 "Calculating 1st Derivative")
 compare_signals("output/2nd_derivative_out.txt",
                 "Derivative testcases/2nd_derivative_out.txt",
                 "Calculating 2nd Derivative")
+
 print()
 
-compare_signals("output/MovingAvg_out.txt",
-                "Moving Average testcases/MovingAvg_out1.txt",
-                "Calculating Moving Average (smoothed signal)")
+compare_signals("output/Conv_output.txt",
+                "Convolution testcases/Conv_output.txt",
+                "Calculating Convolution")
+

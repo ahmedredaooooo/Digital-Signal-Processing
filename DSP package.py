@@ -582,16 +582,39 @@ def convolution():
     messagebox.showinfo("signal 1", "select 1st signal")
     file_name = select_file(0)
     x1, y1 = ReadSignalFile(file_name)
+    x1 = list(map(int, x1))
 
     messagebox.showinfo("signal 2", "select 2nd signal")
     file_name = select_file(0)
     x2, y2 = ReadSignalFile(file_name)
+    x2 = list(map(int, x2))
 
-    mn_x = x1[0] + x2[0]
-    mx_x = x1[-1] + x2[-1]
+    mnx = x1[0]
+    mxx = x1[-1]
+    x = [0] * len(x1)
+    for i, vx in zip(x1, y1):
+        x[i] = vx
 
-    res_x = list(range(mn_x, mx_x + 1))
-    res_y = list(np.zeros(len(res_x)))
+    mnh = x2[0]
+    mxh = x2[-1]
+    h = [0] * len(x2)
+    for i, vh in zip(x2, y2):
+        h[i] = vh
+
+    mn = mnx + mnh
+    mx = mxx + mxh
+    y = [0] * (mx - mn + 1)
+    for n in range(mn, mx + 1):
+        for k in range(max(mnx, n - mxh), min(mxx, n - mnh) + 1):
+            y[n] += x[k] * h[n - k]
+
+    print(mn, mx, y)
+
+    with open(f"Task4 testcases and testing functions/output/Conv_output.txt", "w") as file:
+        file.write(f"0\n0\n{len(y)}\n")
+        for i in range(mn, mx + 1):
+            file.write(f"{i} {int(y[i])}\n")
+
 
 
 # %% GUI
