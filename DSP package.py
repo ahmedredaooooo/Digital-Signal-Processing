@@ -13,13 +13,13 @@ from scipy.interpolate import CubicSpline, BarycentricInterpolator
 first_signal_path = ""
 second_signal_path = ""
 
-def prompt():
+def prompt(txt = "Enter a number:"):
     # Create a new popup window
     input_window = tk.Toplevel(root)
     input_window.title("Enter a Number")
 
     # Create a label and a text entry box
-    tk.Label(input_window, text="Enter a number:").pack(padx=10, pady=10)
+    tk.Label(input_window, text=txt).pack(padx=10, pady=10)
     entry = tk.Entry(input_window)
     entry.pack(padx=10, pady=10)
 
@@ -559,8 +559,24 @@ def derivative_signal():
             file.write(f"{i} {d2[i]}\n")
             
 
-def moving_average():
-    pass
+def moving_average(WS):
+    file_name = select_file(0)
+    x, y = ReadSignalFile(file_name)
+
+    for i in range(1, len(y)):
+        y[i] += y[i - 1]
+    y.append(0)
+    nx = list(range(len(x) - WS + 1))
+    ny = []
+
+    for i in range(len(nx)):
+        ny.append(round((y[i + WS - 1] - y[i - 1]) / WS, ndigits=3))
+
+    with open(f"Task4 testcases and testing functions/output/MovingAvg_out.txt", "w") as file:
+        file.write(f"0\n0\n{len(nx)}\n")
+        for i in range(len(nx)):
+            file.write(f"{nx[i]} {int(ny[i]) if ny[i].is_integer() else ny[i]}\n")
+
 
 def convolution():
     messagebox.showinfo("signal 1", "select 1st signal")
@@ -639,7 +655,7 @@ task4_label.place(x=1270, y=300)  # Positioning on the right
 button11 = tk.Button(root, text=" Derivative ", command=derivative_signal, **button_style)
 button11.place(x=1240, y=350)
 
-button12 = tk.Button(root, text=" Moving Average ", command=moving_average, **button_style)
+button12 = tk.Button(root, text=" Moving Average ", command=lambda: moving_average(int(prompt("Enter Window size:"))), **button_style)
 button12.place(x=1240, y=400)
 
 button13 = tk.Button(root, text=" Convolution ", command=convolution, **button_style)

@@ -42,3 +42,6 @@ compare_signals("output/2nd_derivative_out.txt",
                 "Calculating 2nd Derivative")
 print()
 
+compare_signals("output/MovingAvg_out.txt",
+                "Moving Average testcases/MovingAvg_out1.txt",
+                "Calculating Moving Average (smoothed signal)")
