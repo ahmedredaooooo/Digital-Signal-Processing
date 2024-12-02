@@ -1,4 +1,5 @@
 import bisect
+import cmath
 import math
 import tkinter as tk  # Import the Tkinter module and alias it as 'tk'
 from tkinter import filedialog, font
@@ -615,7 +616,21 @@ def convolution():
         for i in range(mn, mx + 1):
             file.write(f"{i} {int(y[i])}\n")
 
-
+def DFT_IDFT(b):
+    b = 0 # if dft else if idft b = 1
+    x = [0, 1, 2, 3, 4, 5, 6, 7]
+    y = [1, 3, 5, 7, 9, 11, 13, 15]
+    # y = [0, 1, 2, 3]
+    N = len(y)
+    xk = []
+    c = pow(-1, 1 - b) * 2 * math.pi / N
+    for k in range(N):
+        t = complex(0, 0)
+        for n in range(N):
+            theta = pow(-1, 1-b) * 2 * n * k * math.pi / N
+            t = t + complex(y[n], 0) * complex((math.cos(theta)), (math.sin(theta)))
+        t = t * pow(N, -b)
+        xk.append(cmath.polar(t))
 
 # %% GUI
 root = tk.Tk()
