@@ -352,7 +352,7 @@ def display_signals_continues(file_name):
     # Show the plot
     plt.show()
 
-def display_signals_discrete(file_name):
+def display_signals_discrete(file_name, xAxis = 'X Axis', yAxis = 'Y Axis'):
     if file_name == "":
         file_name = select_file(0)
 
@@ -368,8 +368,8 @@ def display_signals_discrete(file_name):
 
     # Customizing the plot
     plt.title('Discrete Signal Representation', fontsize=16, fontweight='bold')
-    plt.xlabel('X Axis', fontsize=12)
-    plt.ylabel('Y Axis', fontsize=12)
+    plt.xlabel(xAxis, fontsize=12)
+    plt.ylabel(yAxis, fontsize=12)
     plt.grid(True)
     plt.legend()
 
@@ -616,21 +616,63 @@ def convolution():
         for i in range(mn, mx + 1):
             file.write(f"{i} {int(y[i])}\n")
 
-def DFT_IDFT(b):
-    b = 0 # if dft else if idft b = 1
-    x = [0, 1, 2, 3, 4, 5, 6, 7]
-    y = [1, 3, 5, 7, 9, 11, 13, 15]
-    # y = [0, 1, 2, 3]
+def DFT_IDFT(b, fs):
+    # b = 0 : DFT, b = 1 : IDFT
+    file_name = select_file(0)
+    x, y = ReadSignalFile(file_name)
+#        x = [64, 20.905007438022, 11.3137084989848, 8.65913760233915, 8, 8.65913760233915, 11.3137084989848, 20.905007438022]
+#        y = [0, 1.96349540849362, 2.35619449019235, 2.74889357189107, -3.14159265358979, -2.74889357189107, -2.35619449019235, -1.96349540849362]
+
+    if b == 1:
+        y = [cmath.rect(magnitude, angle) for magnitude, angle in zip(x, y)]
+    print(y)
     N = len(y)
     xk = []
     c = pow(-1, 1 - b) * 2 * math.pi / N
     for k in range(N):
         t = complex(0, 0)
         for n in range(N):
-            theta = pow(-1, 1-b) * 2 * n * k * math.pi / N
-            t = t + complex(y[n], 0) * complex((math.cos(theta)), (math.sin(theta)))
+            theta = c * n * k
+            t = t + y[n] * complex((math.cos(theta)), (math.sin(theta)))
+            t = complex(round(t.real, 6), round(t.imag, 6))
         t = t * pow(N, -b)
-        xk.append(cmath.polar(t))
+        xk.append(t)
+
+    if b == 0:
+        y = [cmath.polar(c) for c in xk]
+    else:
+        y = [int(c.real) for c in xk]
+    if b == 0:
+        with open(f"Task5 testcases and testing functions/output/Signal_DFT.txt", "w") as file:
+            file.write(f"1\n0\n{len(xk)}\n")
+            for m, a in y:
+                file.write(f"{m} {a}\n")
+
+    else:
+        with open(f"Task5 testcases and testing functions/output/Signal_IDFT.txt", "w") as file:
+            file.write(f"0\n0\n{len(xk)}\n")
+            for i, r in enumerate(y):
+                file.write(f"{i} {r}\n")
+    if b == 1:
+        display_signals_discrete("Task5 testcases and testing functions/output/Signal_IDFT.txt")
+    else:
+        w = 2 * math.pi * fs / N
+        freqs = []
+        for i in range(1, N + 1):
+            freqs.append(i * w)
+        with open(f"Task5 testcases and testing functions/output/Signal_DFT_magnitude.txt", "w") as file:
+            file.write(f"1\n0\n{len(xk)}\n")
+            for i in range(N):
+                m, a = y[i]
+                file.write(f"{freqs[i]} {m}\n")
+        with open(f"Task5 testcases and testing functions/output/Signal_DFT_phase_shift.txt", "w") as file:
+            file.write(f"1\n0\n{len(xk)}\n")
+            for i in range(N):
+                m, a = y[i]
+                file.write(f"{freqs[i]} {a}\n")
+        display_signals_discrete("Task5 testcases and testing functions/output/Signal_DFT_magnitude.txt", "frequency", "Magnitude")
+        display_signals_discrete("Task5 testcases and testing functions/output/Signal_DFT_phase_shift.txt", "frequency", "Phase-Shift")
+    print(xk)
 
 # %% GUI
 root = tk.Tk()
@@ -698,5 +740,11 @@ button12.place(x=1240, y=400)
 
 button13 = tk.Button(root, text=" Convolution ", command=convolution, **button_style)
 button13.place(x=1240, y=450)
+
+button14 = tk.Button(root, text="  DFT   ", command=lambda: DFT_IDFT(0, int(prompt("Enter sampling frequency"))), **button_style)
+button14.place(x=313, y=222)
+
+button15 = tk.Button(root, text="  IDFT   ", command=lambda: DFT_IDFT(1, 0), **button_style)
+button15.place(x=789, y=222)
 
 root.mainloop()
