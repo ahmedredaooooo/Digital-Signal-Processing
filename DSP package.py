@@ -620,8 +620,6 @@ def DFT_IDFT(b, fs):
     # b = 0 : DFT, b = 1 : IDFT
     file_name = select_file(0)
     x, y = ReadSignalFile(file_name)
-#        x = [64, 20.905007438022, 11.3137084989848, 8.65913760233915, 8, 8.65913760233915, 11.3137084989848, 20.905007438022]
-#        y = [0, 1.96349540849362, 2.35619449019235, 2.74889357189107, -3.14159265358979, -2.74889357189107, -2.35619449019235, -1.96349540849362]
 
     if b == 1:
         y = [cmath.rect(magnitude, angle) for magnitude, angle in zip(x, y)]
@@ -647,7 +645,6 @@ def DFT_IDFT(b, fs):
             file.write(f"1\n0\n{len(xk)}\n")
             for m, a in y:
                 file.write(f"{m} {a}\n")
-
     else:
         with open(f"Task5 testcases and testing functions/output/Signal_IDFT.txt", "w") as file:
             file.write(f"0\n0\n{len(xk)}\n")
@@ -733,13 +730,13 @@ task4_label.place(x=1270, y=300)  # Positioning on the right
 
 # Task4 Buttons
 button11 = tk.Button(root, text=" Derivative ", command=derivative_signal, **button_style)
-button11.place(x=1240, y=350)
+button11.place(x=202, y=573)
 
 button12 = tk.Button(root, text=" Moving Average ", command=lambda: moving_average(int(prompt("Enter Window size:"))), **button_style)
-button12.place(x=1240, y=400)
+button12.place(x=278, y=728)
 
 button13 = tk.Button(root, text=" Convolution ", command=convolution, **button_style)
-button13.place(x=1240, y=450)
+button13.place(x=1225, y=189)
 
 button14 = tk.Button(root, text="  DFT   ", command=lambda: DFT_IDFT(0, int(prompt("Enter sampling frequency"))), **button_style)
 button14.place(x=313, y=222)
