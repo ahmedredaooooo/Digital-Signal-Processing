@@ -358,7 +358,7 @@ def display_signals_continues(file_name):
     # Show the plot
     plt.show()
 
-def display_signals_discrete(file_name, xAxis = 'X Axis', yAxis = 'Y Axis'):
+def display_signals_discrete(file_name, xAxis = 'X Axis', yAxis = 'Y Axis', WHO = "Discrete Signal Representation"):
     if file_name == "":
         file_name = select_file(0)
 
@@ -373,7 +373,7 @@ def display_signals_discrete(file_name, xAxis = 'X Axis', yAxis = 'Y Axis'):
     plt.xticks(np.arange(x.min(), x.max(), x[1] - x[0]))
 
     # Customizing the plot
-    plt.title('Discrete Signal Representation', fontsize=16, fontweight='bold')
+    plt.title(WHO, fontsize=16, fontweight='bold')
     plt.xlabel(xAxis, fontsize=12)
     plt.ylabel(yAxis, fontsize=12)
     plt.grid(True)
@@ -590,12 +590,14 @@ def convolution(x1 = [], y1 = [], x2 = [], y2 = []):
         messagebox.showinfo("signal 1", "select 1st signal")
         file_name = select_file(0)
         x1, y1 = ReadSignalFile(file_name)
+        display_signals_discrete(file_name, "Samples", "Amplitudes")
     x1 = list(map(int, x1))
 
     if len(x2) == 0:
         messagebox.showinfo("signal 2", "select 2nd signal")
         file_name = select_file(0)
         x2, y2 = ReadSignalFile(file_name)
+        display_signals_discrete(file_name, "Samples", "Amplitudes")
     x2 = list(map(int, x2))
 
     mnx = x1[0]
@@ -627,7 +629,7 @@ def convolution(x1 = [], y1 = [], x2 = [], y2 = []):
             file.write(f"{i} {y[i]}\n")
             rx.append(i)
             ry.append(y[i])
-
+    display_signals_discrete(f"Task4 testcases and testing functions/output/Conv_output.txt", "Samples", "Amplitudes")
     return rx, ry
 
 def DFT_IDFT(b, fs, x = [], y = [], disp = True):
@@ -684,7 +686,6 @@ def DFT_IDFT(b, fs, x = [], y = [], disp = True):
                 for i in range(N):
                     m, a = y[i]
                     file.write(f"{freqs[i]} {a}\n")
-            print(f"freqqqqqqqqqqqqqqqqqs {freqs}")
             display_signals_discrete("Task5 testcases and testing functions/output/Signal_DFT_magnitude.txt", "frequency", "Magnitude")
             display_signals_discrete("Task5 testcases and testing functions/output/Signal_DFT_phase_shift.txt", "frequency", "Phase-Shift")
     print(xk)
@@ -843,7 +844,7 @@ def create_filter():
     Compare_Signals(expected_file_path, n, h)
 
 
-def apply_filter(method = 1):
+def apply_filter(method = 0):
 
     filter_type, fs, fc, sa, tb = take_filter_specs()
     n, h = design_filter(filter_type, fs, fc, sa, tb)
@@ -869,6 +870,7 @@ def apply_filter(method = 1):
         file.write(f"0\n0\n{len(rx)}\n")
         for x, y in zip(rx, ry):
             file.write(f"{x} {y}\n")
+
 
     messagebox.showinfo("Testing", "select expected output")
     expected_file_path = select_file(0)
