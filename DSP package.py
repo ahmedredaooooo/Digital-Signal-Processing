@@ -704,7 +704,7 @@ def correlation(x1=None, y1=None, x2=None, y2=None):
         p[i] = r[i] / p_dominator
     print(r)
     print(p)
-    return max(p), p.index(max(p))
+    return p, p.index(max(p))
 # correlation()
 
 def time_delay(fs):
@@ -733,17 +733,20 @@ def ReadXOrYFile(file_name):
 def template_matching():
     file_name = select_file(0)
     test = ReadXOrYFile(file_name)
-    down = [[0] * len(test)] * 5
+    down = [[0.0] * len(test)] * 5
     corr_up, corr_down, up = down.copy(), down.copy(), down.copy()
+    print(len(down))
+    print(len(down[0]))
+    print(np.array(down).shape)
 
     for i in range(5):
         down[i] = ReadXOrYFile(f'correlation testcases and testing functions/point3 Files/Class 1/down{i + 1}.txt')
     for i in range(5):
         up[i] = ReadXOrYFile(f'correlation testcases and testing functions/point3 Files/Class 2/up{i + 1}.txt')
     for i in range(5):
-        corr_up[i] = correlation([0], test, [0], up[i])
-        corr_down[i] = correlation([0], test, [0], down[i])
-    mx_up, mx_down = [0] * 5, [0] * 5
+        corr_up[i], _ = correlation([0], test, [0], up[i])
+        corr_down[i], _ = correlation([0], test, [0], down[i])
+    mx_up, mx_down = [0.0] * 5, [0.0] * 5
     for i in range(5):
         mx_up[i] = max(corr_up[i])
         mx_down[i] = max(corr_down[i])
@@ -751,10 +754,6 @@ def template_matching():
         print("up")
     else:
         print("down")
-    print(len(down))
-    print(len(down[0]))
-    print(np.array(down).shape)
-
 template_matching()
 
 # %% GUI
