@@ -671,6 +671,92 @@ def DFT_IDFT(b, fs):
         display_signals_discrete("Task5 testcases and testing functions/output/Signal_DFT_phase_shift.txt", "frequency", "Phase-Shift")
     print(xk)
 
+
+#%% correlation
+def correlation(x1=None, y1=None, x2=None, y2=None):
+    if x1 == None:
+        x1, y1, x2, y2 = list(), list(), list(), list()
+    if len(x1) == 0:
+        messagebox.showinfo("signal 1", "select 1st signal")
+        file_name = select_file(0)
+        x1, y1 = ReadSignalFile(file_name)
+        x1 = list(map(int, x1))
+
+        messagebox.showinfo("signal 2", "select 2nd signal")
+        file_name = select_file(0)
+        x2, y2 = ReadSignalFile(file_name)
+        x2 = list(map(int, x2))
+
+    # clac
+    # P12
+    N = len(y1)
+    p_dominator, tmp = 0, 0
+    for i in y1: p_dominator += i ** 2
+    for i in y2: tmp += i ** 2
+    p_dominator *= tmp
+    p_dominator = math.sqrt(p_dominator)
+    p_dominator /= N
+    r = [0] * N
+    p = r.copy()
+    for i in range(N):
+        for j in range(N): r[i] += y1[j] * y2[(i + j) % N]
+        r[i] /= N
+        p[i] = r[i] / p_dominator
+    print(r)
+    print(p)
+    return max(p), p.index(max(p))
+# correlation()
+
+def time_delay(fs):
+    # when calling from button enter call the prompt to enter fs
+    _, mx_idx = correlation()
+    print(mx_idx, mx_idx / fs)
+# time_delay(100)
+
+
+def ReadXOrYFile(file_name):
+    XOrY=[]
+    with open(file_name, 'r') as f:
+        line = '1'
+        while line:
+            # process line
+            L = line.strip()
+            if len(L.split(' '))==1:
+                L=line.split(' ')
+                V1=float(L[0])                      # changed to float as we need it generateSignal()
+                XOrY.append(V1)
+                line = f.readline()
+            else:
+                break
+    return XOrY
+
+def template_matching():
+    file_name = select_file(0)
+    test = ReadXOrYFile(file_name)
+    down = [[0] * len(test)] * 5
+    corr_up, corr_down, up = down.copy(), down.copy(), down.copy()
+
+    for i in range(5):
+        down[i] = ReadXOrYFile(f'correlation testcases and testing functions/point3 Files/Class 1/down{i + 1}.txt')
+    for i in range(5):
+        up[i] = ReadXOrYFile(f'correlation testcases and testing functions/point3 Files/Class 2/up{i + 1}.txt')
+    for i in range(5):
+        corr_up[i] = correlation([0], test, [0], up[i])
+        corr_down[i] = correlation([0], test, [0], down[i])
+    mx_up, mx_down = [0] * 5, [0] * 5
+    for i in range(5):
+        mx_up[i] = max(corr_up[i])
+        mx_down[i] = max(corr_down[i])
+    if sum(mx_up) > sum(mx_down):
+        print("up")
+    else:
+        print("down")
+    print(len(down))
+    print(len(down[0]))
+    print(np.array(down).shape)
+
+template_matching()
+
 # %% GUI
 root = tk.Tk()
 root.title("Signal Processing")
