@@ -2,12 +2,18 @@ import bisect
 import cmath
 import math
 import tkinter as tk  # Import the Tkinter module and alias it as 'tk'
+from collections import deque
 from tkinter import filedialog, font
 from tkinter import messagebox
 import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
 from scipy.interpolate import CubicSpline, BarycentricInterpolator
+from sortedcontainers import SortedDict
+import math
+from math import pi, sin, cos, ceil
+
+
 
 
 # Variables to store the file paths
@@ -579,15 +585,17 @@ def moving_average(WS):
             file.write(f"{nx[i]} {int(ny[i]) if ny[i].is_integer() else ny[i]}\n")
 
 
-def convolution():
-    messagebox.showinfo("signal 1", "select 1st signal")
-    file_name = select_file(0)
-    x1, y1 = ReadSignalFile(file_name)
+def convolution(x1 = [], y1 = [], x2 = [], y2 = []):
+    if len(x1) == 0:
+        messagebox.showinfo("signal 1", "select 1st signal")
+        file_name = select_file(0)
+        x1, y1 = ReadSignalFile(file_name)
     x1 = list(map(int, x1))
 
-    messagebox.showinfo("signal 2", "select 2nd signal")
-    file_name = select_file(0)
-    x2, y2 = ReadSignalFile(file_name)
+    if len(x2) == 0:
+        messagebox.showinfo("signal 2", "select 2nd signal")
+        file_name = select_file(0)
+        x2, y2 = ReadSignalFile(file_name)
     x2 = list(map(int, x2))
 
     mnx = x1[0]
@@ -611,15 +619,23 @@ def convolution():
 
     print(mn, mx, y)
 
+    rx = []
+    ry = []
     with open(f"Task4 testcases and testing functions/output/Conv_output.txt", "w") as file:
         file.write(f"0\n0\n{len(y)}\n")
         for i in range(mn, mx + 1):
-            file.write(f"{i} {int(y[i])}\n")
+            file.write(f"{i} {y[i]}\n")
+            rx.append(i)
+            ry.append(y[i])
 
-def DFT_IDFT(b, fs):
+    return rx, ry
+
+def DFT_IDFT(b, fs, x = [], y = [], disp = True):
     # b = 0 : DFT, b = 1 : IDFT
-    file_name = select_file(0)
-    x, y = ReadSignalFile(file_name)
+    if len(x) == 0:
+        messagebox.showinfo("input", "DFT_IDFT input")
+        file_name = select_file(0)
+        x, y = ReadSignalFile(file_name)
 
     if b == 1:
         y = [cmath.rect(magnitude, angle) for magnitude, angle in zip(x, y)]
@@ -650,26 +666,215 @@ def DFT_IDFT(b, fs):
             file.write(f"0\n0\n{len(xk)}\n")
             for i, r in enumerate(y):
                 file.write(f"{i} {r}\n")
-    if b == 1:
-        display_signals_discrete("Task5 testcases and testing functions/output/Signal_IDFT.txt")
-    else:
-        w = 2 * math.pi * fs / N
-        freqs = []
-        for i in range(1, N + 1):
-            freqs.append(i * w)
-        with open(f"Task5 testcases and testing functions/output/Signal_DFT_magnitude.txt", "w") as file:
-            file.write(f"1\n0\n{len(xk)}\n")
-            for i in range(N):
-                m, a = y[i]
-                file.write(f"{freqs[i]} {m}\n")
-        with open(f"Task5 testcases and testing functions/output/Signal_DFT_phase_shift.txt", "w") as file:
-            file.write(f"1\n0\n{len(xk)}\n")
-            for i in range(N):
-                m, a = y[i]
-                file.write(f"{freqs[i]} {a}\n")
-        display_signals_discrete("Task5 testcases and testing functions/output/Signal_DFT_magnitude.txt", "frequency", "Magnitude")
-        display_signals_discrete("Task5 testcases and testing functions/output/Signal_DFT_phase_shift.txt", "frequency", "Phase-Shift")
+    if disp:
+        if b == 1:
+            display_signals_discrete("Task5 testcases and testing functions/output/Signal_IDFT.txt")
+        else:
+            w = 2 * math.pi * fs / N
+            freqs = []
+            for i in range(1, N + 1):
+                freqs.append(i * w)
+            with open(f"Task5 testcases and testing functions/output/Signal_DFT_magnitude.txt", "w") as file:
+                file.write(f"1\n0\n{len(xk)}\n")
+                for i in range(N):
+                    m, a = y[i]
+                    file.write(f"{freqs[i]} {m}\n")
+            with open(f"Task5 testcases and testing functions/output/Signal_DFT_phase_shift.txt", "w") as file:
+                file.write(f"1\n0\n{len(xk)}\n")
+                for i in range(N):
+                    m, a = y[i]
+                    file.write(f"{freqs[i]} {a}\n")
+            print(f"freqqqqqqqqqqqqqqqqqs {freqs}")
+            display_signals_discrete("Task5 testcases and testing functions/output/Signal_DFT_magnitude.txt", "frequency", "Magnitude")
+            display_signals_discrete("Task5 testcases and testing functions/output/Signal_DFT_phase_shift.txt", "frequency", "Phase-Shift")
     print(xk)
+    return xk
+
+
+def Compare_Signals(file_name,Your_indices,Your_samples):
+    expected_indices=[]
+    expected_samples=[]
+    with open(file_name, 'r') as f:
+        line = f.readline()
+        line = f.readline()
+        line = f.readline()
+        line = f.readline()
+        while line:
+            # process line
+            L=line.strip()
+            if len(L.split(' '))==2:
+                L=line.split(' ')
+                V1=int(L[0])
+                V2=float(L[1])
+                expected_indices.append(V1)
+                expected_samples.append(V2)
+                line = f.readline()
+            else:
+                break
+    print("Current Output Test file is: ")
+    print(file_name)
+    print("\n")
+    if (len(expected_samples)!=len(Your_samples)) and (len(expected_indices)!=len(Your_indices)):
+        print("Test case failed, your signal have different length from the expected one")
+        return
+    for i in range(len(Your_indices)):
+        if(Your_indices[i]!=expected_indices[i]):
+            print("Test case failed, your signal have different indicies from the expected one")
+            return
+    for i in range(len(expected_samples)):
+        if abs(Your_samples[i] - expected_samples[i]) < 0.01:
+            continue
+        else:
+            print("Test case failed, your signal have different values from the expected one")
+            return
+    print("Test case passed successfully")
+
+
+def take_filter_specs():
+    # Create a new popup window
+    input_window = tk.Toplevel(root)
+    input_window.title("Enter filter specs")
+
+    # Variable to store the user's choice
+    tk.Label(input_window, text="Enter filter type:").pack(padx=10,pady=10)
+    filter_type = tk.StringVar(value="Lowpass")  # Default to 0 if no option is selected
+    tk.Radiobutton(input_window, text="Lowpass", variable=filter_type, value="Lowpass").pack(anchor='w', padx=10)
+    tk.Radiobutton(input_window, text="Highpass", variable=filter_type, value="Highpass").pack(anchor='w', padx=10)
+    tk.Radiobutton(input_window, text="Bandpass", variable=filter_type, value="Bandpass").pack(anchor='w', padx=10)
+    tk.Radiobutton(input_window, text="Bandstop", variable=filter_type, value="Bandstop").pack(anchor='w', padx=10)
+
+
+    fs = tk.IntVar()
+    fc = []
+    sa = tk.IntVar()
+    tb = tk.IntVar()
+
+    tk.Label(input_window, text="1) Enter sampling frequency:").pack(padx=10,pady=10)
+    fsEntry = tk.Entry(input_window)
+    fsEntry.pack(padx=10, pady=10)
+    fsEntry.insert(0, "8000")
+
+    tk.Label(input_window, text="2) Enter cut-off frequencies:").pack(padx=10,pady=10)
+    fcsEntry = tk.Entry(input_window)
+    fcsEntry.pack(padx=10, pady=10)
+    fcsEntry.insert(0, "1500")
+
+    tk.Label(input_window, text="3) Enter stop attenuation:").pack(padx=10,pady=10)
+    saEntry = tk.Entry(input_window)
+    saEntry.pack(padx=10, pady=10)
+    saEntry.insert(0, "50")
+
+    tk.Label(input_window, text="4) Enter transition band:").pack(padx=10, pady=10)
+    tbEntry = tk.Entry(input_window)
+    tbEntry.pack(padx=10, pady=10)
+    tbEntry.insert(0, "500")
+
+    def submit_input():
+        try:
+            fs.set(int(fsEntry.get()))
+            for s in fcsEntry.get().replace(",", " ").split():
+                fc.append(int(s))
+            sa.set(int(saEntry.get()))
+            tb.set(int(tbEntry.get()))
+            input_window.destroy()  # Close the popup window after a valid choice is made
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter a valid inputs.")
+
+    # Create a button to submit the input
+    tk.Button(input_window, text="Submit", command=submit_input).pack(pady=10)
+
+    # Wait for the popup window to be closed before continuing
+    input_window.wait_window()
+    return filter_type.get(), fs.get(), fc, sa.get(), tb.get()
+
+
+def design_filter(filter_type, fs, fc, sa, tb):
+    hds = {
+        "Lowpass" : [lambda fc, n: 2.0 * fc[0] if n == 0 else sin(2 * pi * fc[0] * n) / (n * pi), [1]],
+        "Highpass" : [lambda fc, n: 1 - 2.0 * fc[0] if n == 0 else -sin(2 * pi * fc[0] * n) / (n * pi), [-1]],
+        "Bandpass" : [lambda fc, n: 2.0 * (fc[-1] - fc[0]) if n == 0 else sin(2 * pi * fc[-1] * n) / (n * pi) - sin(2 * pi * fc[0] * n) / (n * pi), [-1, 1]],
+        "Bandstop" : [lambda fc, n: 1 - 2.0 * (fc[-1] - fc[0]) if n == 0 else sin(2 * pi * fc[0] * n) / (n * pi) - sin(2 * pi * fc[-1] * n) / (n * pi), [1, -1]]
+    }
+    windows = SortedDict({
+        21 : [0.9, lambda N, n: 1, "Rectangular"],
+        44 : [3.1, lambda N, n: 0.50 + 0.50 * cos(2.0 * pi * n / N), "Hanning"],
+        53 : [3.3, lambda N, n: 0.54 + 0.46 * cos(2.0 * pi * n / N), "Hamming"],
+        74 : [5.5, lambda N, n: 0.42 + 0.50 * cos(2.0 * pi * n / (N - 1)) + 0.08 * cos(4 * pi * n / (N - 1)), "Blackman"]
+    })
+
+    window = windows.iloc[windows.bisect_left(sa)]
+    w = windows[window][1]
+    hd = hds[filter_type][0]
+    cf = hds[filter_type][1]
+    delta_f = tb * 1.0
+    N = ceil(windows[window][0] / (delta_f / fs))
+    if N & 1 == 0: N += 1
+    h = [0] * N
+
+    fc_dash = np.array(fc) + np.array(cf) * np.array([delta_f / 2] * len(fc))
+    fc_dash = (fc_dash / fs).tolist()
+    print(fc_dash)
+
+    for n in range(N // 2 + 1):
+        h[n] = hd(fc_dash, n) * w(N, n)
+        h[-n] = h[n]
+    d = deque(h)
+    d.rotate(N // 2)
+    h = list(d)
+    mx = N // 2
+    mn = -mx
+    n = list(range(mn, mx + 1))
+    return n, h
+
+
+def create_filter():
+    filter_type, fs, fc, sa, tb = take_filter_specs()
+    n, h = design_filter(filter_type, fs, fc, sa, tb)
+    print(n)
+    print(h)
+
+    with open(f"Final testcases and testing functions/output/out.txt", "w") as file:
+        file.write(f"0\n0\n{len(h)}\n")
+        for i, y in zip(n, h):
+            file.write(f"{i} {y}\n")
+
+    messagebox.showinfo("Testing", "select expected output")
+    expected_file_path = select_file(0)
+    Compare_Signals(expected_file_path, n, h)
+
+
+def apply_filter(method = 1):
+
+    filter_type, fs, fc, sa, tb = take_filter_specs()
+    n, h = design_filter(filter_type, fs, fc, sa, tb)
+
+    if method == 0:
+        rx, ry = convolution(x2=n, y2=h)
+    else:
+        fx = DFT_IDFT(0, fs, disp=True)
+        fh = DFT_IDFT(0, fs, x=n, y=h, disp=True)
+
+        amp = [cmath.polar(c)[0] for c in fh]
+        ph = [cmath.polar(c)[1] for c in fh]
+
+        tmph = DFT_IDFT(1, fs, x=amp, y=ph)
+        fy = [c1 * c2 for c1, c2 in zip(fx, fh)]
+        fy = [cmath.polar(c) for c in fy]
+        fym = [c[0] for c in fy]
+        fyp = [c[1] for c in fy]
+        y = DFT_IDFT(1, fs, x=fym, y=fyp, disp=False)
+        print(y)
+
+    with open(f"Final testcases and testing functions/output/out.txt", "w") as file:
+        file.write(f"0\n0\n{len(rx)}\n")
+        for x, y in zip(rx, ry):
+            file.write(f"{x} {y}\n")
+
+    messagebox.showinfo("Testing", "select expected output")
+    expected_file_path = select_file(0)
+    Compare_Signals(expected_file_path, rx, ry)
+
+
 
 # %% GUI
 root = tk.Tk()
@@ -743,5 +948,11 @@ button14.place(x=313, y=222)
 
 button15 = tk.Button(root, text="  IDFT   ", command=lambda: DFT_IDFT(1, 0), **button_style)
 button15.place(x=789, y=222)
+
+button16 = tk.Button(root, text="   Create Filter   ", command= create_filter, **button_style)
+button16.place(x=1236, y=944)
+
+button17 = tk.Button(root, text="  Apply Filter   ", command=apply_filter, **button_style)
+button17.place(x=396, y=10)
 
 root.mainloop()
