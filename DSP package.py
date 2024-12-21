@@ -878,6 +878,103 @@ def apply_filter(method = 0):
 
 
 
+
+#%% correlation
+def correlation(x1=None, y1=None, x2=None, y2=None):
+    if y1 is None:
+        x1, y1, x2, y2 = list(), list(), list(), list()
+    if len(y1) == 0:
+        messagebox.showinfo("signal 1", "select 1st signal")
+        file_name = select_file(0)
+        x1, y1 = ReadSignalFile(file_name)
+        x1 = list(map(int, x1))
+
+        messagebox.showinfo("signal 2", "select 2nd signal")
+        file_name = select_file(0)
+        x2, y2 = ReadSignalFile(file_name)
+        x2 = list(map(int, x2))
+
+    # clac
+    # P12
+    N = len(y1)
+    p_dominator, tmp = 0, 0
+    for i in y1: p_dominator += i ** 2
+    for i in y2: tmp += i ** 2
+    p_dominator *= tmp
+    p_dominator = math.sqrt(p_dominator)
+    p_dominator /= N
+    r = [0.0] * N
+    p = [0.0] * N
+    for i in range(N):
+        for j in range(N): r[i] += y1[j] * y2[(i + j) % N]
+        r[i] /= N
+        p[i] = abs(r[i] / p_dominator)
+    print(r)
+    print(p)
+    with open(f"correlation testcases and testing functions/Point1 Correlation/output/CorrOutput.txt", "w") as file:
+        file.write(f"0\n1\n{N}\n")
+        for i in range(N):
+            file.write(f"{i} {p[i]}\n")
+    return p, p.index(max(p))
+# correlation([])
+
+def time_delay(fs):
+    # when calling from button enter call the prompt to enter fs
+    _, mx_idx = correlation()
+    messagebox.showinfo(title="Time Delay", message=f"time delay = {mx_idx / fs}"), print(mx_idx, mx_idx / fs)
+# time_delay(100)
+
+
+def ReadXOrYFile(file_name):
+    XOrY=[]
+
+    with open(file_name, 'r') as f:
+        line = f.readline()
+        while line:
+            # process line
+            L = line.strip()
+            if len(L.split(' '))==1:
+                L=line.split(' ')
+                V1=float(L[0])                      # changed to float as we need it generateSignal()
+                XOrY.append(V1)
+                line = f.readline()
+            else:
+                break
+    return XOrY
+
+def template_matching():
+    file_name = select_file(0)
+    test = ReadXOrYFile(file_name)
+    down = [[0.0] * len(test)] * 5
+    up = [[0.0] * len(test)] * 5
+    corr_up = [[0.0] * len(test)] * 5
+    corr_down = [[0.0] * len(test)] * 5
+    print(test)
+    print(down)
+    print(len(down))
+    print(len(down[0]))
+    print(np.array(down).shape)
+
+    for i in range(5):
+        down[i] = ReadXOrYFile(f'correlation testcases and testing functions/point3 Files/Class 1/down{i + 1}.txt')
+    for i in range(5):
+        up[i] = ReadXOrYFile(f'correlation testcases and testing functions/point3 Files/Class 2/up{i + 1}.txt')
+
+    for i in range(5):
+        corr_up[i], _ = correlation([0], test, [0], up[i])
+        corr_down[i], _ = correlation([0], test, [0], down[i])
+    mx_up, mx_down = [0.0] * 5, [0.0] * 5
+    for i in range(5):
+        mx_up[i] = max(corr_up[i])
+        mx_down[i] = max(corr_down[i])
+    print(f'sum(mx_up) / 5 = {sum(mx_up) / 5}, sum(mx_down) / 5 = {sum(mx_down) / 5}')
+    if sum(mx_up) / 5 >= sum(mx_down) / 5:
+        messagebox.showinfo(title="Template Matching", message=f"Up Up ↑ Up Up"), print("up")
+    else:
+        messagebox.showinfo(title="Template Matching", message=f"Down Down ↓ Down Down"), print("down")
+
+# template_matching()
+
 # %% GUI
 root = tk.Tk()
 root.title("Signal Processing")
@@ -952,9 +1049,19 @@ button15 = tk.Button(root, text="  IDFT   ", command=lambda: DFT_IDFT(1, 0), **b
 button15.place(x=789, y=222)
 
 button16 = tk.Button(root, text="   Create Filter   ", command= create_filter, **button_style)
-button16.place(x=1236, y=944)
+button16.place(x=1236, y=644)
 
 button17 = tk.Button(root, text="  Apply Filter   ", command=apply_filter, **button_style)
 button17.place(x=396, y=10)
+
+button18 = tk.Button(root, text=" Correlation ", command=correlation, **button_style)
+button18.place(x=125, y=181)
+
+button19 = tk.Button(root, text=" Time Delay ", command= lambda: time_delay(int(prompt("Enter sampling frequency"))), **button_style)
+button19.place(x=581, y=425)
+
+button20 = tk.Button(root, text=" Template Matching ", command=template_matching, **button_style)
+button20.place(x=1112, y=519)
+
 
 root.mainloop()
