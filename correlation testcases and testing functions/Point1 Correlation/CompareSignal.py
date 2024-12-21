@@ -1,4 +1,26 @@
-def Compare_Signals(file_name,Your_indices,Your_samples):      
+def ReadSignalFile(file_name):
+    expected_indices=[]
+    expected_samples=[]
+    with open(file_name, 'r') as f:
+        line = f.readline()
+        line = f.readline()
+        line = f.readline()
+        line = f.readline()
+        while line:
+            # process line
+            L = line.strip()
+            if len(L.split(' '))==2:
+                L=line.split(' ')
+                V1=float(L[0])                      # changed to float as we need it generateSignal()
+                V2=float(L[1])
+                expected_indices.append(V1)
+                expected_samples.append(V2)
+                line = f.readline()
+            else:
+                break
+    return expected_indices,expected_samples
+
+def Compare_Signals(file_name,Your_indices,Your_samples):
     expected_indices=[]
     expected_samples=[]
     with open(file_name, 'r') as f:
@@ -35,3 +57,5 @@ def Compare_Signals(file_name,Your_indices,Your_samples):
             print("Correlation Test case failed, your signal have different values from the expected one") 
             return
     print("Correlation Test case passed successfully")
+x, y = ReadSignalFile('output/CorrOutput.txt')
+Compare_Signals('CorrOutput.txt', x, y)

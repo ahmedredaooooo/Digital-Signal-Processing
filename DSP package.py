@@ -674,9 +674,9 @@ def DFT_IDFT(b, fs):
 
 #%% correlation
 def correlation(x1=None, y1=None, x2=None, y2=None):
-    if x1 == None:
+    if y1 is None:
         x1, y1, x2, y2 = list(), list(), list(), list()
-    if len(x1) == 0:
+    if len(y1) == 0:
         messagebox.showinfo("signal 1", "select 1st signal")
         file_name = select_file(0)
         x1, y1 = ReadSignalFile(file_name)
@@ -696,28 +696,33 @@ def correlation(x1=None, y1=None, x2=None, y2=None):
     p_dominator *= tmp
     p_dominator = math.sqrt(p_dominator)
     p_dominator /= N
-    r = [0] * N
-    p = r.copy()
+    r = [0.0] * N
+    p = [0.0] * N
     for i in range(N):
         for j in range(N): r[i] += y1[j] * y2[(i + j) % N]
         r[i] /= N
-        p[i] = r[i] / p_dominator
+        p[i] = abs(r[i] / p_dominator)
     print(r)
     print(p)
+    with open(f"correlation testcases and testing functions/Point1 Correlation/output/CorrOutput.txt", "w") as file:
+        file.write(f"0\n1\n{N}\n")
+        for i in range(N):
+            file.write(f"{i} {p[i]}\n")
     return p, p.index(max(p))
-# correlation()
+# correlation([])
 
 def time_delay(fs):
     # when calling from button enter call the prompt to enter fs
     _, mx_idx = correlation()
-    print(mx_idx, mx_idx / fs)
+    messagebox.showinfo(title="Time Delay", message=f"time delay = {mx_idx / fs}"), print(mx_idx, mx_idx / fs)
 # time_delay(100)
 
 
 def ReadXOrYFile(file_name):
     XOrY=[]
+
     with open(file_name, 'r') as f:
-        line = '1'
+        line = f.readline()
         while line:
             # process line
             L = line.strip()
@@ -734,7 +739,11 @@ def template_matching():
     file_name = select_file(0)
     test = ReadXOrYFile(file_name)
     down = [[0.0] * len(test)] * 5
-    corr_up, corr_down, up = down.copy(), down.copy(), down.copy()
+    up = [[0.0] * len(test)] * 5
+    corr_up = [[0.0] * len(test)] * 5
+    corr_down = [[0.0] * len(test)] * 5
+    print(test)
+    print(down)
     print(len(down))
     print(len(down[0]))
     print(np.array(down).shape)
@@ -743,6 +752,7 @@ def template_matching():
         down[i] = ReadXOrYFile(f'correlation testcases and testing functions/point3 Files/Class 1/down{i + 1}.txt')
     for i in range(5):
         up[i] = ReadXOrYFile(f'correlation testcases and testing functions/point3 Files/Class 2/up{i + 1}.txt')
+
     for i in range(5):
         corr_up[i], _ = correlation([0], test, [0], up[i])
         corr_down[i], _ = correlation([0], test, [0], down[i])
@@ -750,11 +760,13 @@ def template_matching():
     for i in range(5):
         mx_up[i] = max(corr_up[i])
         mx_down[i] = max(corr_down[i])
-    if sum(mx_up) > sum(mx_down):
-        print("up")
+    print(f'sum(mx_up) / 5 = {sum(mx_up) / 5}, sum(mx_down) / 5 = {sum(mx_down) / 5}')
+    if sum(mx_up) / 5 >= sum(mx_down) / 5:
+        messagebox.showinfo(title="Template Matching", message=f"Up Up ↑ Up Up"), print("up")
     else:
-        print("down")
-template_matching()
+        messagebox.showinfo(title="Template Matching", message=f"Down Down ↓ Down Down"), print("down")
+
+# template_matching()
 
 # %% GUI
 root = tk.Tk()
@@ -828,5 +840,15 @@ button14.place(x=313, y=222)
 
 button15 = tk.Button(root, text="  IDFT   ", command=lambda: DFT_IDFT(1, 0), **button_style)
 button15.place(x=789, y=222)
+
+
+button18 = tk.Button(root, text=" Correlation ", command=correlation, **button_style)
+button18.place(x=125, y=181)
+
+button19 = tk.Button(root, text=" Time Delay ", command= lambda: time_delay(int(prompt("Enter sampling frequency"))), **button_style)
+button19.place(x=581, y=425)
+
+button20 = tk.Button(root, text=" Template Matching ", command=template_matching, **button_style)
+button20.place(x=1112, y=519)
 
 root.mainloop()
